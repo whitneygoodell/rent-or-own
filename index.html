@@ -14,7 +14,7 @@
 <style>
 :root {
   --bg: #F3F5F8; --surface: #FFFFFF; --ink: #14213D; --muted: #566075; --line: #D5DAE3;
-  --tint: #E8EDF5; --rent: #2A6FB8; --own: #C4631B; --focus: #14213D; --track: #C9D1DE;
+  --tint: #E8EDF5; --rent: #2A6FB8; --own: #C4631B; --focus: #14213D; --track: #C9D1DE; --mb-rent: #8DBDF2; --mb-own: #F7A867;
   color-scheme: light;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
@@ -23,13 +23,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0F1520; --surface: #161E2D; --ink: #E8EDF5; --muted: #A0ABBF; --line: #2A3548;
-    --tint: #1F2A40; --rent: #6AA6E8; --own: #F09A55; --focus: #E8EDF5; --track: #3A4660;
+    --tint: #1F2A40; --rent: #6AA6E8; --own: #F09A55; --focus: #E8EDF5; --track: #3A4660; --mb-rent: #1D5CA6; --mb-own: #AE4F0C;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0F1520; --surface: #161E2D; --ink: #E8EDF5; --muted: #A0ABBF; --line: #2A3548;
-  --tint: #1F2A40; --rent: #6AA6E8; --own: #F09A55; --focus: #E8EDF5; --track: #3A4660;
+  --tint: #1F2A40; --rent: #6AA6E8; --own: #F09A55; --focus: #E8EDF5; --track: #3A4660; --mb-rent: #1D5CA6; --mb-own: #AE4F0C;
   color-scheme: dark;
 }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); }
@@ -141,6 +141,10 @@ svg.chart text { fill: var(--muted); font-size: 11px; font-family: inherit; }
 .minibar .mb-c span { opacity: 1; font-weight: 700; font-size: .78rem; line-height: 1.2; }
 .minibar .mb-c small { display: block; opacity: .7; font-size: .7rem; margin-top: 2px; text-decoration: underline; text-underline-offset: 2px; }
 .minibar .mb-r { text-align: right; }
+.minibar .mb-l span, .minibar .mb-l b, .minibar .mb-r span, .minibar .mb-r b { transition: color .2s ease; }
+.minibar[data-win="rent"] .mb-l span, .minibar[data-win="rent"] .mb-l b { color: var(--mb-rent); font-weight: 800; opacity: 1; }
+.minibar[data-win="own"] .mb-r span, .minibar[data-win="own"] .mb-r b { color: var(--mb-own); font-weight: 800; opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .minibar .mb-l span, .minibar .mb-l b, .minibar .mb-r span, .minibar .mb-r b { transition: none; } }
 @media (prefers-reduced-motion: no-preference) { .duel .bar { transition: width .25s ease; } }
 
 /* scenarios */
@@ -284,6 +288,8 @@ body.simple #form .field.s3 { display: block; order: 3; }
 body.simple #form .field.s4 { display: block; order: 4; }
 .note .setbud { background: var(--surface); border: 1px solid var(--ink); color: var(--ink); border-radius: 6px; padding: 3px 10px; margin-left: 2px; cursor: pointer; font-size: .85rem; font-weight: 700; }
 .note .setbud:hover { background: var(--ink); color: var(--surface); }
+.desknote { display: none; margin: 10px 0 0; font-size: .88rem; color: var(--muted); }
+@media (max-width: 899px) { .desknote { display: block; } }
 </style>
 </head>
 <body class="simple">
@@ -309,7 +315,7 @@ body.simple #form .field.s4 { display: block; order: 4; }
       </div>
       <div id="form"></div>
       <details class="assumptions" id="assumptions"><summary id="assume-sum"></summary><ul id="assume-list"></ul><p class="assume-foot">You can change any of these in Advanced.</p></details>
-      <div class="deeper" id="deeper"><p><b>Want to explore deeper?</b> Compare scenarios, change every assumption, and see the full breakdown and charts.</p><button type="button" id="godeeper">Switch to Advanced</button></div>
+      <div class="deeper" id="deeper"><p><b>Want to explore deeper?</b> Compare scenarios, change every assumption, and see the full breakdown and charts.</p><button type="button" id="godeeper">Switch to Advanced</button><p class="desknote">Advanced works best on a computer or tablet, where there’s room for the extra controls and charts.</p></div>
       <button class="reset" id="reset" type="button">Reset everything to starting values</button>
     </section>
 
@@ -766,6 +772,9 @@ function render() {
   document.getElementById("mb-rent").textContent = compact(act.last.rentNW);
   document.getElementById("mb-own").textContent = compact(act.last.ownNW);
   document.getElementById("mb-label").textContent = "Net worth after " + act.sim.N + " years";
+  var mbWin = winnerOf(act.last).w, mbBar = document.getElementById("minibar");
+  mbBar.setAttribute("data-win", mbWin);
+  mbBar.setAttribute("aria-label", "Net worth after " + act.sim.N + " years. " + (mbWin === "rent" ? "Renting is ahead." : mbWin === "own" ? "Buying is ahead." : "About even.") + " Tap to jump between your numbers and the full results.");
   drawChart(act.sim.rows);
   renderBE(res); renderWhy(act); renderLearn(act); renderAssumptions();
   if (document.getElementById("ask").open) updatePrompt();
@@ -1251,7 +1260,7 @@ function applyModeUI() {
   document.body.className = MODE;
   document.getElementById("m-simple").setAttribute("aria-selected", String(MODE === "simple"));
   document.getElementById("m-adv").setAttribute("aria-selected", String(MODE === "advanced"));
-  document.getElementById("modenote").textContent = MODE === "simple" ? "Four numbers, and we handle the rest." : "Every assumption, scenario comparison, and charts.";
+  document.getElementById("modenote").textContent = MODE === "simple" ? "Four numbers, and we handle the rest." : "Every assumption, scenario comparison, and charts." + (NARROW.matches ? " Best on a computer or tablet." : "");
 }
 function setMode(m) {
   if (m === MODE) return;
