@@ -292,6 +292,29 @@ body.simple #form .field.s4 { display: block; order: 4; }
 @media (max-width: 899px) { .desknote { display: block; } }
 .concept { background: var(--tint); border-left: 4px solid var(--rent); border-radius: 4px; padding: 10px 12px; margin: 0 0 18px; font-size: .92rem; }
 </style>
+<script>
+/* Lets the site owner skip their own visits: open #skip-my-visits once per browser (undo with #count-my-visits). */
+(function () {
+  function show(msg) {
+    function go() {
+      var old = document.getElementById("gc-skip-banner"); if (old) old.remove();
+      var d = document.createElement("div"); d.id = "gc-skip-banner"; d.setAttribute("role", "status");
+      d.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;background:#14213D;color:#fff;font:600 15px system-ui,sans-serif;text-align:center";
+      d.textContent = msg; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 8000);
+    }
+    if (document.body) go(); else document.addEventListener("DOMContentLoaded", go);
+  }
+  function run() {
+    var h = location.hash, on = h === "#skip-my-visits", off = h === "#count-my-visits";
+    if (!on && !off) return;
+    try {
+      if (on) localStorage.setItem("skipgc", "t"); else localStorage.removeItem("skipgc");
+      show(on ? "Visit counting is OFF in this browser. Your own visits won\u2019t be counted." : "Visit counting is ON again in this browser.");
+    } catch (e) { show("This browser blocked the setting, so your visits can\u2019t be skipped here."); }
+  }
+  run(); window.addEventListener("hashchange", run);
+})();
+</script>
 <script>window.goatcounter = { path: location.pathname || "/" };</script>
 <script data-goatcounter="https://wgcounter.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
