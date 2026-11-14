@@ -292,6 +292,8 @@ body.simple #form .field.s4 { display: block; order: 4; }
 @media (max-width: 899px) { .desknote { display: block; } }
 .concept { background: var(--tint); border-left: 4px solid var(--rent); border-radius: 4px; padding: 10px 12px; margin: 0 0 18px; font-size: .92rem; }
 </style>
+<script>window.goatcounter = { path: location.pathname || "/" };</script>
+<script data-goatcounter="https://wgcounter.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body class="simple">
 <div class="wrap">
@@ -1160,7 +1162,7 @@ document.getElementById("reset").addEventListener("click", function () {
   defaults(); CHG = null; KEYS.forEach(function (s) { if (s.kind !== "yn") setErr(s, ""); }); renderTabs(); syncControls(); render();
 });
 /* ----- share link ----- */
-var CLAUDE_LINK = "https://claude.ai/artifact/ArrTs9ZhGUn5FSCVTRFgcF", CURTOKEN = "", HASHTIMER = null;
+var CLAUDE_LINK = "https://claude.ai/artifact/ArrTs9ZhGUn5FSCVTRFgcF", CURTOKEN = "", HASHTIMER = null, T_START = Date.now();
 function shareBase() { return window.claude ? CLAUDE_LINK : location.href.split("#")[0]; }
 function hexOf(str) { return Array.prototype.map.call(new TextEncoder().encode(str), function (b) { return ("0" + b.toString(16)).slice(-2); }).join(""); }
 function unhex(t) { if (!/^([0-9a-f]{2})+$/.test(t)) throw new Error("bad name"); var a = new Uint8Array(t.length / 2); for (var i = 0; i < a.length; i++) a[i] = parseInt(t.substr(i * 2, 2), 16); return new TextDecoder().decode(a).slice(0, 40); }
@@ -1213,6 +1215,7 @@ function applyToken(tok) {
 function scheduleHash() {
   clearTimeout(HASHTIMER);
   HASHTIMER = setTimeout(function () {
+    if (location.hash === "#toggle-goatcounter" && Date.now() - T_START < 15000) { scheduleHash(); return; }
     var t = stateToken(), out = document.getElementById("codeout");
     if (out) out.value = t;
     if (t !== CURTOKEN) { CURTOKEN = t; try { location.replace("#" + t); } catch (e) {} }
